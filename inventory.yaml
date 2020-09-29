@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  inventory-service:
+    image: beerworks/micro-beer-inventory-service
+    ports:
+      - 8082:8082
+    environment:
+      SPRING_PROFILES_ACTIVE: digitalocean
+      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://netflix:eureka@${EUREKA_IP_ADDRESS}:8761/eureka/"},"region":"default","register-with-eureka":true},"instance":{"preferIpAddress":true,"hostName":"${MACHINE_IP_ADDRESS}"}},"spring":{"cloud":{"config":{"discovery":{"enabled":true,"serviceId":"micro-brewery-config"},"failFast":true,"username":"MyUserName","password":"MySecretPassword"}}},"application":{"name":"beer-inventory-service"}}'
+      SPRING_ZIPKIN_BASEURL: http://${ZIPKIN_IP_ADDRESS}:9411
+      SPRING_ARTEMIS_HOST: ${JMS_IP_ADDRESS}
+  inventory-failover:
+    image: beerworks/micro-beer-inventory-failover
+    ports:
+      - 8083:8083
+    environment:
+      SPRING_PROFILES_ACTIVE: digitalocean
+      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://netflix:eureka@${EUREKA_IP_ADDRESS}:8761/eureka/"},"region":"default","register-with-eureka":true},"instance":{"preferIpAddress":true,"hostName":"${MACHINE_IP_ADDRESS}"}},"application":{"name":"inventory-failover"}}'
+      SPRING_ZIPKIN_BASEURL: http://${ZIPKIN_IP_ADDRESS}:9411

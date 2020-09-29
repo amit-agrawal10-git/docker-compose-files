@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  eurekaserver:
+    image: beerworks/micro-beer-eureka-server
+    ports:
+      - 8761:8761
+  config:
+    image: beerworks/micro-beer-config
+    ports:
+      - 8888:8888
+    depends_on:
+      - eurekaserver
+    environment:
+      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://netflix:eureka@eurekaserver:8761/eureka/"},"region":"default","register-with-eureka":true},"instance":{"preferIpAddress":true,"ip-address":"${MACHINE_IP_ADDRESS}"}}}'
+  gateway-service:
+      image: beerworks/micro-beer-gateway
+      ports:
+        - 9090:9090
+      environment:
+        SPRING_PROFILES_ACTIVE: local-discovery
+        SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://netflix:eureka@eurekaserver:8761/eureka/"},"region":"default","register-with-eureka":false}}}'
+        SPRING_ZIPKIN_BASEURL: http://${ZIPKIN_IP_ADDRESS}:9411
+      restart: on-failure
